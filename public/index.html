@@ -5,6 +5,16 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
         <meta name="description" content="A product of emergent.sh" />
+        <!-- Runtime env loader: optional file served by the host at /env.js to override build-time envs -->
+        <script>
+            (function () {
+                var s = document.createElement('script');
+                s.src = '/env.js';
+                s.onload = function () { console.log('Loaded runtime env'); };
+                s.onerror = function () { /* env.js optional */ };
+                document.head.appendChild(s);
+            })();
+        </script>
         <!--
       manifest.json provides metadata used when your web app is installed on a
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/

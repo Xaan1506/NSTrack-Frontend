@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import { API } from '../App';
+const API = process.env.REACT_APP_BACKEND_URL;
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -30,7 +30,7 @@ const SignupPage = ({ setAuth }) => {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API}/auth/signup`, formData);
+      const response = await axios.post(`${API}/api/auth/signup`, formData);
       localStorage.setItem('token', response.data.access_token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
 
@@ -223,3 +223,4 @@ const SignupPage = ({ setAuth }) => {
 };
 
 export default SignupPage;
+console.log("BACKEND URL:", process.env.REACT_APP_BACKEND_URL);

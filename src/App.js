@@ -17,9 +17,26 @@ import { Toaster } from 'sonner';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { ProgressProvider } from './context/ProgressContext';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
-export const API = `${BACKEND_URL}/api`;
-console.log("Backend URL:", BACKEND_URL);
+// Resolve backend URL with runtime override support:
+// Priority:
+// 1. window._env_.REACT_APP_BACKEND_URL (set at runtime by /env.js)
+// 2. window.REACT_APP_BACKEND_URL (older conventions)
+// 3. build-time process.env.REACT_APP_BACKEND_URL
+const getBackendUrl = () => {
+  if (typeof window !== 'undefined') {
+    if (window._env_ && window._env_.REACT_APP_BACKEND_URL) {
+      return window._env_.REACT_APP_BACKEND_URL;
+    }
+    if (window.REACT_APP_BACKEND_URL) {
+      return window.REACT_APP_BACKEND_URL;
+    }
+  }
+  return process.env.REACT_APP_BACKEND_URL || '';
+};
+
+const BACKEND_URL = getBackendUrl();
+export const API = BACKEND_URL;
+console.log('Backend URL (resolved):', BACKEND_URL);
 
 
 export const getAuthHeaders = () => {
