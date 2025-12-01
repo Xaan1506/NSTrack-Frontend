@@ -9,10 +9,12 @@ import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfettiCelebration from '../components/ConfettiCelebration';
 import { useProgress } from '../context/ProgressContext';
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage = ({ setAuth }) => {
   const navigate = useNavigate();
   const { updateStreak } = useProgress();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -34,12 +36,11 @@ const LoginPage = ({ setAuth }) => {
         email: formData.email.toLowerCase()
       };
 
-      const response = await axios.post(`${API}/auth/login`, loginData);
-      localStorage.setItem('token', response.data.access_token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-
-      // Mark app authenticated immediately to avoid route race
-      setAuth(true);
+  const response = await axios.post(`${API}/auth/login`, loginData);
+  const token = response.data?.access_token || response.data?.token || response.data?.jwt || response.data?.accessToken;
+  const userObj = response.data?.user;
+  if (!token) throw new Error('No token returned');
+  login(token, userObj);
 
       // Show celebration
       setShowConfetti(true);

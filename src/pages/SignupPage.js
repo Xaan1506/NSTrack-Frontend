@@ -9,10 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { toast } from 'sonner';
 import ConfettiCelebration from '../components/ConfettiCelebration';
 import { useProgress } from '../context/ProgressContext';
+import { useAuth } from '../context/AuthContext';
 
-const SignupPage = ({ setAuth }) => {
+const SignupPage = () => {
   const navigate = useNavigate();
   const { updateStreak } = useProgress();
+  const { login } = useAuth();
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -29,33 +32,44 @@ const SignupPage = ({ setAuth }) => {
     e.preventDefault();
     setLoading(true);
 
+    // basic client-side validation
+    if (!formData.name.trim() || !formData.email.trim() || !formData.password) {
+      toast.error('Please fill in all required fields');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await axios.post(`${API}/auth/signup`, formData);
+      // Map client fields to expected backend names if needed
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        skill_level: formData.skill_level,
+        batch: formData.batch,
+        gender: formData.gender
+      };
 
-      // Store token if backend returned one (support common keys)
-      const token = response.data?.access_token || response.data?.token || response.data?.accessToken || response.data?.jwt;
+      const response = await axios.post(`${API}/auth/signup`, payload);
+
+      const token = response.data?.access_token || response.data?.token || response.data?.jwt || response.data?.accessToken;
+      const userObj = response.data?.user;
+
       if (token) {
-        localStorage.setItem('token', token);
-        setAuth(true);
-      } else {
-        // No token returned: store user but do not mark authenticated
-        // user will need to login to receive a token
-      }
-      if (response.data?.user) {
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        login(token, userObj);
+      } else if (userObj) {
+        // no token returned — store user but require login for protected routes
+        localStorage.setItem('user', JSON.stringify(userObj));
       }
 
-      // Show celebration
       setShowConfetti(true);
       setShowWelcome(true);
       updateStreak();
+      toast.success(`Welcome! You've earned ${userObj?.points || 0} points!`);
 
-      toast.success(`Welcome! You've earned ${response.data.user?.points || 0} points!`);
-
-      // Navigate after animation
       setTimeout(() => {
         navigate('/dashboard');
-      }, 2000);
+      }, 1600);
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Signup failed');
       setLoading(false);
@@ -66,7 +80,7 @@ const SignupPage = ({ setAuth }) => {
   useEffect(() => {
     document.documentElement.classList.add('dark');
     return () => {
-      // Cleanup if needed when component unmounts
+      // cleanup not necessary
     };
   }, []);
 
@@ -79,7 +93,7 @@ const SignupPage = ({ setAuth }) => {
 
       <Link to="/" className="absolute top-6 left-6">
         <Button variant="ghost" className="text-slate-300 hover:text-cyan-400" data-testid="home-btn">
-          ← Home
+          [0m[0m[0m[0m[0mHome
         </Button>
       </Link>
 
@@ -233,4 +247,3 @@ const SignupPage = ({ setAuth }) => {
 };
 
 export default SignupPage;
-console.log("BACKEND URL:", process.env.REACT_APP_BACKEND_URL);

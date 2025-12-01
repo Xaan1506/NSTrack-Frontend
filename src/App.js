@@ -16,6 +16,7 @@ import BubbleGame from './pages/BubbleGame';
 import { Toaster } from 'sonner';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { ProgressProvider } from './context/ProgressContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Resolve backend URL with runtime override support:
 // Priority:
@@ -46,26 +47,21 @@ export const getAuthHeaders = () => {
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
+const RequireAuth = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  const { theme } = useTheme();
+  if (loading) return (
+    <div className={`flex items-center justify-center min-h-screen transition-colors duration-200 ${theme === 'dark' ? 'bg-[rgb(3,7,18)] text-white' : 'bg-white text-gray-900'}`}>
+      <div className="text-cyan-400 text-xl">Loading...</div>
+    </div>
+  );
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
+};
+
 const AppContent = () => {
   const { theme } = useTheme();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsAuthenticated(true);
-    }
-    setLoading(false);
-  }, []);
-
-  if (loading) {
-    return (
-      <div className={`flex items-center justify-center min-h-screen transition-colors duration-200 ${theme === 'dark' ? 'bg-[rgb(3,7,18)] text-white' : 'bg-white text-gray-900'}`}>
-        <div className="text-cyan-400 text-xl">Loading...</div>
-      </div>
-    );
-  }
+  // AppContent no longer keeps top-level auth state; routing uses RequireAuth
 
   return (
     <ProgressProvider>
@@ -76,24 +72,18 @@ const AppContent = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route
-              path="/login"
-              element={!isAuthenticated ? <LoginPage setAuth={setIsAuthenticated} /> : <Navigate to="/dashboard" />}
-            />
-            <Route
-              path="/signup"
-              element={!isAuthenticated ? <SignupPage setAuth={setIsAuthenticated} /> : <Navigate to="/dashboard" />}
-            />
-            <Route
-              path="/forgot-password"
-              element={!isAuthenticated ? <ForgotPasswordPage setAuth={setIsAuthenticated} /> : <Navigate to="/dashboard" />}
-            />
-            <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
-            <Route path="/friends" element={isAuthenticated ? <FriendsPage /> : <Navigate to="/login" />} />
-            <Route path="/language/:lang" element={isAuthenticated ? <LanguagePage /> : <Navigate to="/login" />} />
-            <Route path="/roadmap" element={isAuthenticated ? <RoadmapPage /> : <Navigate to="/login" />} />
-            <Route path="/problems" element={isAuthenticated ? <ProblemsPage /> : <Navigate to="/login" />} />
-            <Route path="/profile" element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+            {/* Protected routes */}
+            <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+            <Route path="/friends" element={<RequireAuth><FriendsPage /></RequireAuth>} />
+            <Route path="/language/:lang" element={<RequireAuth><LanguagePage /></RequireAuth>} />
+            <Route path="/roadmap" element={<RequireAuth><RoadmapPage /></RequireAuth>} />
+            <Route path="/problems" element={<RequireAuth><ProblemsPage /></RequireAuth>} />
+            <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
+
             <Route path="/bubble-game" element={<BubbleGame />} />
           </Routes>
         </BrowserRouter>
@@ -106,7 +96,9 @@ const AppContent = () => {
 function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </ThemeProvider>
   );
 }
