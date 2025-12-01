@@ -9,6 +9,7 @@ import { Trophy, Loader2, Check, Lightbulb, Code, Sun, Moon, FileText, AlertCirc
 import { toast } from 'sonner';
 import CodeEditor from '../components/CodeEditor';
 import { useProgress } from '../context/ProgressContext';
+import { safeJSONParse } from '../lib/utils';
 import { useTheme } from '../context/ThemeContext';
 import { problemsByTrack, filterProblems } from '../data/codingProblems';
 
@@ -25,9 +26,8 @@ const ProblemsPage = () => {
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
+    const parsed = safeJSONParse(userData);
+    if (parsed) setUser(parsed);
   }, []);
 
   const toggleEditor = (problemId) => {

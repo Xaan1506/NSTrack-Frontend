@@ -38,6 +38,9 @@ const LoginPage = ({ setAuth }) => {
       localStorage.setItem('token', response.data.access_token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
 
+      // Mark app authenticated immediately to avoid route race
+      setAuth(true);
+
       // Show celebration
       setShowConfetti(true);
       setShowWelcome(true);
@@ -47,7 +50,6 @@ const LoginPage = ({ setAuth }) => {
 
       // Navigate after animation
       setTimeout(() => {
-        setAuth(true);
         navigate('/dashboard');
       }, 2000);
     } catch (error) {

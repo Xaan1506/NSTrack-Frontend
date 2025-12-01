@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-const API = process.env.REACT_APP_BACKEND_URL;
+import { API } from '../App';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -30,20 +30,30 @@ const SignupPage = ({ setAuth }) => {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API}/api/auth/signup`, formData);
-      localStorage.setItem('token', response.data.access_token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      const response = await axios.post(`${API}/auth/signup`, formData);
+
+      // Store token if backend returned one (support common keys)
+      const token = response.data?.access_token || response.data?.token || response.data?.accessToken || response.data?.jwt;
+      if (token) {
+        localStorage.setItem('token', token);
+        setAuth(true);
+      } else {
+        // No token returned: store user but do not mark authenticated
+        // user will need to login to receive a token
+      }
+      if (response.data?.user) {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
 
       // Show celebration
       setShowConfetti(true);
       setShowWelcome(true);
       updateStreak();
 
-      toast.success(`Welcome! You've earned ${response.data.user.points} points!`);
+      toast.success(`Welcome! You've earned ${response.data.user?.points || 0} points!`);
 
       // Navigate after animation
       setTimeout(() => {
-        setAuth(true);
         navigate('/dashboard');
       }, 2000);
     } catch (error) {

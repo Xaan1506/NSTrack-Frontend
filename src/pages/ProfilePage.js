@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API, getAuthHeaders } from '../App';
+import { safeJSONParse } from '../lib/utils';
 import { Button } from '../components/ui/button';
 import { User, Trophy, Target, Calendar as CalendarIcon, Flame, Award, Edit3, LogOut } from 'lucide-react';
 import { Progress } from '../components/ui/progress';
@@ -60,7 +61,13 @@ const ProfilePage = () => {
       setUser(response.data);
       localStorage.setItem('user', JSON.stringify(response.data));
     } catch (error) {
-      toast.error('Failed to load profile');
+      // If profile fetch fails (no token or network), fall back to localStorage stored user
+      const stored = safeJSONParse(localStorage.getItem('user'));
+      if (stored) {
+        setUser(stored);
+      } else {
+        toast.error('Failed to load profile');
+      }
     } finally {
       setLoading(false);
     }

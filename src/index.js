@@ -28,6 +28,24 @@ if (typeof window !== 'undefined') {
   }
 }
 
+// Sanitize localStorage values that are the literal strings 'undefined' or 'null'
+if (typeof window !== 'undefined' && window.localStorage) {
+  try {
+    Object.keys(localStorage).forEach((key) => {
+      const v = localStorage.getItem(key);
+      if (typeof v === 'string') {
+        const t = v.trim();
+        if (t === 'undefined' || t === 'null') {
+          localStorage.removeItem(key);
+          console.debug(`Sanitized localStorage key: ${key}`);
+        }
+      }
+    });
+  } catch (e) {
+    // ignore
+  }
+}
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>

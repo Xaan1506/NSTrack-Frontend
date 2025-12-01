@@ -5,7 +5,9 @@ const ProgressContext = createContext();
 export const ProgressProvider = ({ children }) => {
   const [progress, setProgress] = useState(() => {
     const saved = localStorage.getItem('learningProgress');
-    return saved ? JSON.parse(saved) : {
+    // import-safe JSON parsing handled here to avoid parsing 'undefined'
+    try {
+      return saved ? JSON.parse(saved) : {
       completedTopics: {},
       completedProblems: {},
       streak: 0,
@@ -13,6 +15,16 @@ export const ProgressProvider = ({ children }) => {
       selectedLanguage: null,
       roadmapProgress: {}
     };
+    } catch (e) {
+      return {
+        completedTopics: {},
+        completedProblems: {},
+        streak: 0,
+        lastActiveDate: null,
+        selectedLanguage: null,
+        roadmapProgress: {}
+      };
+    }
   });
 
   useEffect(() => {

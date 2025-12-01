@@ -35,7 +35,9 @@ const getBackendUrl = () => {
 };
 
 const BACKEND_URL = getBackendUrl();
-export const API = BACKEND_URL;
+// Normalize and expose API base (keeps previous behavior of `${BACKEND_URL}/api`)
+const normalizedBackend = BACKEND_URL ? BACKEND_URL.replace(/\/+$/, '') : '';
+export const API = normalizedBackend ? `${normalizedBackend}/api` : '';
 console.log('Backend URL (resolved):', BACKEND_URL);
 
 

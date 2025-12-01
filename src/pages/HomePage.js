@@ -8,6 +8,7 @@ import InteractiveBubble from '../components/InteractiveBubble';
 import InteractiveSection from '../components/InteractiveSection';
 import LoadingScreen from '../components/LoadingScreen';
 import { useTheme } from '../context/ThemeContext';
+import { safeJSONParse } from '../lib/utils';
 import NotificationBell from '../components/NotificationBell';
 
 const HomePage = () => {
@@ -51,7 +52,7 @@ const HomePage = () => {
       setProfilePhoto(null);
     }
     try {
-      const u = JSON.parse(localStorage.getItem('user'));
+      const u = safeJSONParse(localStorage.getItem('user'));
       setUser(u);
     } catch (e) {
       setUser(null);

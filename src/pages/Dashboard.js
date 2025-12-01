@@ -6,6 +6,7 @@ import { Code, Smartphone, Brain, Trophy, User, LogOut, Sun, Moon, Flame, Users 
 import { Progress } from '../components/ui/progress';
 import { toast } from 'sonner';
 import { useTheme } from '../context/ThemeContext';
+import { safeJSONParse } from '../lib/utils';
 import { useProgress } from '../context/ProgressContext';
 import NotificationBell from '../components/NotificationBell';
 
@@ -20,7 +21,8 @@ const Dashboard = () => {
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
-      setUser(JSON.parse(userData));
+      const parsed = safeJSONParse(userData);
+      if (parsed) setUser(parsed);
 
       // Check if this is the first time the user is logging in
       const firstLogin = localStorage.getItem('firstLogin');
